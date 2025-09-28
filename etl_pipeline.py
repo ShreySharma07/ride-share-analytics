@@ -4,7 +4,7 @@ import requests
 
 
 # --- Configuration ---
-RAW_DATA_URL = "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-01.parquet"
+RAW_DATA_URL = "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2025-01.parquet"
 RAW_DATA_FILE = "data/raw_yellow_tripdata_2024-01.parquet"
 PROCESSED_DATA_FILE = "data/processed_yellow_tripdata_2024-01.parquet"
 
@@ -36,9 +36,8 @@ def transform_data(file_path):
     data['tpep_dropoff_datetime'] = pd.to_datetime(data['tpep_dropoff_datetime'])
 
     # Filter out trips with no passengers or no distance
-    # These are often data errors and not useful for analysis
     initial_rows = len(data)
-    data = data[(data['passenger_count']) & (data['trip_distance']>0)]
+    data = data[(data['passenger_count']>0) & (data['trip_distance']>0)]
     print(f"Removed {initial_rows - len(data)} rows with zero passengers or distance.")
 
     # --- 2. Feature Engineering ---
@@ -47,6 +46,36 @@ def transform_data(file_path):
 
     # Filter out trips with unreasonable durations (e.g., less than 1 min or more than 2 hours)
 
-    initial_rows = len(df)
-    df = df[(df['trip_duration'] >= 1) & (df['trip_duration'] <= 120)]
-    print(f"Removed {initial_rows - len(df)} rows with unreasonable trip durations.")
+    initial_rows = len(data)
+    data = data[(data['trip_duration'] >= 1) & (data['trip_duration'] <= 120)]
+    print(f"Removed {initial_rows - len(data)} rows with unreasonable trip durations.")
+
+    # Calculate average speed in miles per hour. 
+    data['average_speed'] = data['trip_distance'] / (data['trip_duration'] / 60)
+
+    # Extract time-based features
+    data['pickup_hour'] = data['tpep_pickup_datetime'].dt.hour
+    data['pickup_day_of_week'] = data['tpep_pickup_datetime'].dt.day_name()
+
+    print("Transformation complete. New features created: 'trip_duration', 'average_speed', 'pickup_hour', 'pickup_day_of_week'")
+    
+    return data
+
+def load_data(df, file_path):
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    try:
+        df.to_parquet(file_path, index=False)
+        print(f"Processed data successfully saved to {file_path}")
+    except Exception as e:
+        print(f"Error saving data: {e}")
+
+def main():
+    print("--- Starting ETL Process ---")
+    raw_file_path = extract_data(RAW_DATA_URL, RAW_DATA_FILE)
+    if raw_file_path:
+        transformed_df = transform_data(raw_file_path)
+        load_data(transformed_df, PROCESSED_DATA_FILE)
+    print("--- ETL Process Completed ---")
+
+if __name__ == '__main__':
+    main()
