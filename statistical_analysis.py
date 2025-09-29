@@ -17,13 +17,19 @@ def test_payment_hypothesis(df):
     print(f"P-value: {p_value}")
 
     alpha = 0.05
-    if p_value < alpha:
-        print("\nConclusion: The p-value is less than 0.05. We reject the null hypothesis.")
-        print("There is a statistically significant difference in the average fare between credit card and cash payments.")
+    conclusion = ""
+    if p_value < 0.05:
+        conclusion = "The simulated surcharge resulted in a statistically significant increase in the average fare."
     else:
-        print("\nConclusion: The p-value is greater than 0.05. We fail to reject the null hypothesis.")
-        print("There is no statistically significant difference in the average fare between payment types.")
-    print("-" * 45)
+        conclusion = "The change did not result in a statistically significant difference."
+
+    return {
+        "card_mean": card_payments.mean(),
+        "cash_mean": cash_payments.mean(),
+        "p_value": p_value,
+        "conclusion": conclusion
+    }
+
 
 def simulate_ab_test(df):
         print("\n--- Simulating A/B Test for Peak Hour Surcharge ---")
@@ -48,11 +54,20 @@ def simulate_ab_test(df):
         print(f"Treatment Group (B) Average Fare: ${treatment_mean_fare:.2f}")
         print(f"P-value: {p_value}")
 
+        conclusion = ""
         if p_value < 0.05:
-            print("\nConclusion: The simulated surcharge resulted in a statistically significant increase in the average fare.")
+            conclusion = "The simulated surcharge resulted in a statistically significant increase in the average fare."
         else:
-            print("\nConclusion: The change did not result in a statistically significant difference.")
-        print("-" * 55)
+            conclusion = "The change did not result in a statistically significant difference."
+            
+        # This return statement is crucial
+        return {
+            "control_mean": control_mean_fare,
+            "treatment_mean": treatment_mean_fare,
+            "p_value": p_value,
+            "conclusion": conclusion
+        }
+
 
 def main():
     try:

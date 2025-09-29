@@ -16,10 +16,10 @@ def calculate_kpi(df):
 
     kpis = {
         "Total Revenue": f'${total_revenue:,.2f}',
-        "total trips": f'{total_trips:,}',
+        "Total Trips": f'{total_trips:,}',
         "Average Fare per Trip": f'{avg_fare:.2f}',
-        "Average trip duration": f'{avg_duration:.2f}',
-        "Average Trip Duration (minutes)": f"{avg_duration:.2f}"
+        "Average Trip Duration (minutes)": f'{avg_duration:.2f}',
+        "Average Trip Distance (miles)": f"{avg_distance:.2f}"
     }
 
     return kpis
