@@ -70,11 +70,24 @@ def load_data(df, file_path):
         print(f"Error saving data: {e}")
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Run ETL for a specific month or the default dataset.")
+    parser.add_argument("--year", type=int, help="Year (e.g. 2024)")
+    parser.add_argument("--month", type=int, help="Month number (e.g. 3)")
+    args = parser.parse_args()
+
     print("--- Starting ETL Process ---")
-    raw_file_path = extract_data(RAW_DATA_URL, RAW_DATA_FILE)
+    if args.year and args.month:
+        url = f"https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_{args.year}-{args.month:02d}.parquet"
+        raw_path = f"data/raw_yellow_tripdata_{args.year}-{args.month:02d}.parquet"
+        processed_path = f"data/processed_yellow_tripdata_{args.year}-{args.month:02d}.parquet"
+    else:
+        url, raw_path, processed_path = RAW_DATA_URL, RAW_DATA_FILE, PROCESSED_DATA_FILE
+
+    raw_file_path = extract_data(url, raw_path)
     if raw_file_path:
         transformed_df = transform_data(raw_file_path)
-        load_data(transformed_df, PROCESSED_DATA_FILE)
+        load_data(transformed_df, processed_path)
     print("--- ETL Process Completed ---")
 
 if __name__ == '__main__':
